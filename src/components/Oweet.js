@@ -1,4 +1,4 @@
-import { dbService } from "fbase";
+import { dbService, storageService } from "fbase";
 import React, { useState } from "react";
 
 const Oweet = ({ oweetObj, isOwner }) => {
@@ -7,7 +7,10 @@ const Oweet = ({ oweetObj, isOwner }) => {
 
   const onDeleteClick = async () => {
     const ok = window.confirm("Are you sure you want to delete?");
-    if (ok) await dbService.doc(`oweets/${oweetObj.id}`).delete();
+    if (ok) {
+      await dbService.doc(`oweets/${oweetObj.id}`).delete();
+      await storageService.refFromURL(oweetObj.attachmentUrl).delete();
+    }
   };
 
   const toggleEdditing = () => setEditing((prev) => !prev);
@@ -48,6 +51,9 @@ const Oweet = ({ oweetObj, isOwner }) => {
       ) : (
         <>
           <h4>{oweetObj.text}</h4>
+          {oweetObj.attachmentUrl && (
+            <img src={oweetObj.attachmentUrl} width="50px" height="50px" />
+          )}
           {isOwner ? (
             <>
               <button onClick={onDeleteClick}>Delete</button>
