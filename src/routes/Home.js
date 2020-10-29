@@ -1,10 +1,12 @@
-import { dbService } from "fbase";
+import { dbService, storageService } from "fbase";
 import React, { useEffect, useState } from "react";
 import Oweet from "components/Oweet";
+import { v4 as uuidv4 } from "uuid";
 
 const Home = ({ userObj }) => {
   const [oweet, setOweet] = useState("");
   const [oweets, setOweets] = useState([]);
+  const [attachment, setAttachment] = useState();
 
   useEffect(() => {
     dbService.collection("oweets").onSnapshot((snapshot) => {
@@ -18,12 +20,15 @@ const Home = ({ userObj }) => {
 
   const onSubmit = async (event) => {
     event.preventDefault();
-    await dbService.collection("oweets").add({
-      text: oweet,
-      createdAt: Date.now(),
-      creatorId: userObj.uid,
-    });
-    setOweet("");
+    const fileRef = storageService.ref().child(`${userObj.uid}/${uuidv4()}`);
+    const response = await fileRef.putString(attachment, "data_url");
+    console.log(response);
+    // await dbService.collection("oweets").add({
+    //   text: oweet,
+    //   createdAt: Date.now(),
+    //   creatorId: userObj.uid,
+    // });
+    // setOweet("");
   };
 
   const onChange = (event) => {
@@ -32,6 +37,23 @@ const Home = ({ userObj }) => {
     } = event;
     setOweet(value);
   };
+
+  const onFileChange = (event) => {
+    const {
+      target: { files },
+    } = event;
+    const file = files[0];
+    const reader = new FileReader();
+    reader.onloadend = (finishedEvent) => {
+      const {
+        currentTarget: { result },
+      } = finishedEvent;
+      setAttachment(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onClearAttachment = () => setAttachment(null);
 
   return (
     <div>
@@ -43,7 +65,14 @@ const Home = ({ userObj }) => {
           placeholder="What's on your mind"
           maxLength={120}
         />
+        <input type="file" accept="image/*" onChange={onFileChange} />
         <input type="submit" value="oweet" />
+        {attachment ? (
+          <div>
+            <img src={attachment} width="50px" height="50px" />
+            <button onClick={onClearAttachment}>clear</button>
+          </div>
+        ) : null}
       </form>
       <div>
         {oweets.map((oweet) => (
@@ -57,4 +86,5 @@ const Home = ({ userObj }) => {
     </div>
   );
 };
+
 export default Home;

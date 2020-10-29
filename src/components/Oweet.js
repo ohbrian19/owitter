@@ -31,18 +31,20 @@ const Oweet = ({ oweetObj, isOwner }) => {
   return (
     <div>
       {editing ? (
-        <>
-          <form onSubmit={onSubmit}>
-            <input
-              type="text"
-              value={newOweet}
-              required
-              onChange={onChange}
-            ></input>
-            <input type="submit" value="Update" />
-          </form>
-          <button onClick={toggleEdditing}>Cancle</button>
-        </>
+        isOwner ? (
+          <>
+            <form onSubmit={onSubmit}>
+              <input
+                type="text"
+                value={newOweet}
+                required
+                onChange={onChange}
+              ></input>
+              <input type="submit" value="Update" />
+            </form>
+            <button onClick={toggleEdditing}>Cancle</button>
+          </>
+        ) : null
       ) : (
         <>
           <h4>{oweetObj.text}</h4>
